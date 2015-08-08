@@ -1,0 +1,15 @@
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\bin\Release\Warwick.exe.config
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\bin\Release\Warwick.exe
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\bin\Release\Warwick.pdb
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\bin\Release\LeagueSharp.Common.dll
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\bin\Release\LeagueSharp.dll
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\bin\Release\SharpDX.Direct3D9.dll
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\bin\Release\SharpDX.dll
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\bin\Release\clipper_library.dll
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\bin\Release\LeagueSharp.Sandbox.dll
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\bin\Release\LeagueSharp.xml
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\obj\Debug\Warwick.csprojResolveAssemblyReference.cache
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\obj\Debug\Warwick.Properties.Resources.resources
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\obj\Debug\Warwick.csproj.GenerateResource.Cache
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\obj\Debug\Warwick.exe
+C:\Users\xQx Desk\Documents\GitHub\LeagueSharp2\DSeries\Warwick\obj\Debug\Warwick.pdb
