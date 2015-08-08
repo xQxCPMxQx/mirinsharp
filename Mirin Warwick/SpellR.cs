@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -82,7 +82,7 @@ namespace Warwick
 
         private static void Load()
         {
-            Program.rMenu.AddItem(new MenuItem("R.Use", "Use:").SetValue(new StringList(new[] { "Off", "Allways", "If enemy is killable" , "Smart R (Recommend!)"}, 3)));
+            Program.rMenu.AddItem(new MenuItem("R.Use", "Use:").SetValue(new StringList(new[] { "Off", "Everytime", "If enemy is killable" , "Smart R (Recommend!)"}, 3)));
             Program.rMenu.AddItem(new MenuItem("R.SearchRange", MenuTab + "Enemy Searching Range")).SetValue(new Slider(1000, 1500));
 
             Program.rMenu.AddItem(new MenuItem("R.Title", "Enemies:"));
@@ -102,7 +102,7 @@ namespace Warwick
                     .ValueChanged += AutoPriorityItemValueChanged;
             }
             Program.rMenu.AddItem(
-                new MenuItem("R.Click", MenuTab + "Mouse Left-Click: Chance Enemy's Hitchance").SetValue(true));
+                new MenuItem("R.Click", MenuTab + "Mouse Left-Click: Chance Enemy's Hitchance").SetValue(false));
 
             Program.rMenu.AddItem(new MenuItem("Draw.Title", "Drawings"));
             {
@@ -213,8 +213,9 @@ namespace Warwick
   
         private static void Drawing_OnDraw(EventArgs args)
         {
+            if (Program.Config.Item("Draw.Disable").GetValue<bool>())
+                return;
 
-            
             if (Program.rMenu.Item("R.Use").GetValue<StringList>().SelectedIndex == 0)
                 return;
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -246,6 +246,8 @@ namespace Warwick
 
             var menuDraw = new Menu("Draw/Notification", "Draw");
             {
+                menuDraw.AddItem(new MenuItem("Draw.Disable", "Disable All Drawings").SetValue(false));
+
                 menuDraw.AddItem(new MenuItem("Draw.E.Show", "Show Blood Scent (E) Marked Enemy").SetValue(true));
 
                 menuDraw.AddItem(new MenuItem("PermaShowSmiteEnemy", "Show Smite Enemy Permashow Status").SetValue(true))
@@ -410,7 +412,7 @@ namespace Warwick
             if (!Config.Item("Interrupt.R").GetValue<bool>())
                 return;
 
-            if (R.IsReady() && unit.IsValidTarget(R.Range))
+            if (R.IsReady() && unit.IsValidTarget(R.Range) && !unit.HasBuff("bansheeveil"))
                 R.Cast(unit);
         }
 
@@ -442,32 +444,30 @@ namespace Warwick
         {
             get
             {
-                if (W.IsReady())
-                {
-                    var baseAttackSpeed = 0.679348;
-                    var wCdTime = 5;
-                    var passiveDamage = 0; //2.5 + (Player.Level * 0.5);
+                if (!W.IsReady())
+                    return 0;
 
-                    var attackSpeed =
-                        (float) Math.Round(Math.Floor(1/Player.AttackDelay*100)/100, 2, MidpointRounding.ToEven);
+                var baseAttackSpeed = 0.679348;
+                var wCdTime = 5;
+                var passiveDamage = 0; //2.5 + (Player.Level * 0.5);
 
-                    var aDmg = Math.Round(Math.Floor(Player.TotalAttackDamage*100)/100, 2, MidpointRounding.ToEven);
-                    aDmg = Math.Floor(aDmg);
+                var attackSpeed =
+                    (float) Math.Round(Math.Floor(1/Player.AttackDelay*100)/100, 2, MidpointRounding.ToEven);
 
-                    int[] wAttackSpeedLevel = {40, 50, 60, 70, 80};
-                    var totalAttackSpeedWithWActive =
-                        (float)
-                            Math.Round((attackSpeed + baseAttackSpeed/100*wAttackSpeedLevel[W.Level - 1])*100/100, 2,
-                                MidpointRounding.ToEven);
+                var aDmg = Math.Round(Math.Floor(Player.TotalAttackDamage*100)/100, 2, MidpointRounding.ToEven);
+                aDmg = Math.Floor(aDmg);
 
-                    var totalPossibleDamage =
-                        (float)
-                            Math.Round((totalAttackSpeedWithWActive*wCdTime*aDmg)*100/100, 2,
-                                MidpointRounding.ToEven);
-                    return totalPossibleDamage + (float) passiveDamage;
+                int[] wAttackSpeedLevel = {40, 50, 60, 70, 80};
+                var totalAttackSpeedWithWActive =
+                    (float)
+                        Math.Round((attackSpeed + baseAttackSpeed/100*wAttackSpeedLevel[W.Level - 1])*100/100, 2,
+                            MidpointRounding.ToEven);
 
-                }
-                return 0;
+                var totalPossibleDamage =
+                    (float)
+                        Math.Round((totalAttackSpeedWithWActive*wCdTime*aDmg)*100/100, 2,
+                            MidpointRounding.ToEven);
+                return totalPossibleDamage + (float) passiveDamage;
             }
         }
 
@@ -476,15 +476,17 @@ namespace Warwick
             var fComboDamage = 0d;
 
             if (Q.IsReady())
-                fComboDamage += ObjectManager.Player.GetSpellDamage(t, SpellSlot.Q);
+                fComboDamage += Player.GetSpellDamage(t, SpellSlot.Q);
 
             if (W.IsReady())
                 fComboDamage += GetWTotalDamage;
 
             if (R.IsReady())
-                fComboDamage += ObjectManager.Player.GetSpellDamage(t, SpellSlot.R);
+                fComboDamage += Player.GetSpellDamage(t, SpellSlot.R);
 
-
+            if (PlayerSpells.IgniteSlot != SpellSlot.Unknown &&
+                Player.Spellbook.CanUseSpell(PlayerSpells.IgniteSlot) == SpellState.Ready)
+                fComboDamage += Player.GetSummonerSpellDamage(t, Damage.SummonerSpell.Ignite);
 
             return (float) fComboDamage;
         }
@@ -515,13 +517,29 @@ namespace Warwick
             if (R.IsReady())
             {
                 var tR = SpellR.GetTarget(R.Range, TargetSelector.DamageType.Physical);
+                if (Q.IsReady() && tR.Health < Player.GetSpellDamage(t, SpellSlot.Q))
+                    return;
+
+                if (tR.IsValidTarget(Orbwalking.GetRealAutoAttackRange(null) + 65) && tR.Health < Player.TotalAttackDamage)
+                    return;
+
+                if (PlayerSpells.IgniteSlot != SpellSlot.Unknown &&
+                    Player.Spellbook.CanUseSpell(PlayerSpells.IgniteSlot) == SpellState.Ready &&
+                    tR.Health < Player.GetSummonerSpellDamage(tR, Damage.SummonerSpell.Ignite))
+                    return;
+
+                if (tR.HasBuff("bansheeveil")) // don't use R if enemy's banshee is active!
+                    return;
+
                 var useR = Config.Item("R.Use").GetValue<StringList>().SelectedIndex;
                 switch (useR)
                 {
                     case 1:
                     {
                         if (tR.IsValidTarget(R.Range))
-                            R.Cast(tR);
+                        {
+                                R.Cast(tR);
+                        }
                         break;
                     }
                     case 2:
@@ -656,24 +674,44 @@ namespace Warwick
             }
         }
 
-
         private static void JungleClear()
         {
             var useQ = Q.IsReady() && Player.ManaPercent > Config.Item("Jungle.Q.MinMana").GetValue<Slider>().Value &&
                        Config.Item("Jungle.Q.Use").GetValue<bool>();
+
             var useW = W.IsReady() && Player.ManaPercent > Config.Item("Jungle.W.MinMana").GetValue<Slider>().Value &&
                        Config.Item("Jungle.W.Use").GetValue<bool>();
 
-            var qMobs = MinionManager.GetMinions(Player.ServerPosition, Q.Range, MinionTypes.All, MinionTeam.Neutral,
+            var qMobs = MinionManager.GetMinions(Player.ServerPosition, Q.Range + 300, MinionTypes.All, MinionTeam.Neutral,
                 MinionOrderTypes.MaxHealth);
+
             if (qMobs.Count == 0)
                 return;
 
             if (useQ)
             {
-                Q.CastOnUnit(qMobs[0]);
+                var jungleMinions = new string[]
+                {
+                    "SRU_Blue", "SRU_Gromp", "SRU_Murkwolf", "SRU_Razorbeak", "SRU_Red", "SRU_Krug", "SRU_Dragon",
+                    "SRU_Baron", "Sru_Crab"
+                };
+                
+                var xMobs = jungleMinions.FirstOrDefault(name => qMobs[0].Name.Substring(0, qMobs[0].Name.Length - 5).Equals(name));
+                
+                if (xMobs != null)
+                {
+                    if (qMobs[0].IsValidTarget(Q.Range))
+                    {
+                        Q.CastOnUnit(qMobs[0]);
+                    }
+                }
+                else
+                {
+                    Q.CastOnUnit(qMobs[0]);
+                }
             }
-            if (useW)
+
+            if (useW && qMobs[0].IsValidTarget(Q.Range))
             {
                 W.Cast();
             }
@@ -715,6 +753,11 @@ namespace Warwick
 
         private static void Drawing_OnDraw(EventArgs args)
         {
+            if (Config.Item("Draw.Disable").GetValue<bool>())
+                return;
+
+            if (Config.Item("Draw.Disable").GetValue<bool>())
+                return;
 
             if (Config.Item("Draw.E.Show").GetValue<bool>() && E.IsReady())
             {
