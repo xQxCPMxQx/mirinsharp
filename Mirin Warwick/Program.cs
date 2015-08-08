@@ -333,7 +333,7 @@ namespace Warwick
                     "Rengar", "Riven", "Shaco", "Trundle", "Tryndamere", "Udyr", "Urgot", "Vi", "XinZhao", "Yasuo",
                     "Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jinx", "Kalista", "Kennen", "KogMaw",
                     "Lucian", "MasterYi", "MissFortune", "Orianna", "Quinn", "Sivir", "Talon", "Teemo", "Tristana",
-                    "TwistedFate", "Twitch", "Varus", "Vayne", "Zed"
+                    "TwistedFate", "Twitch", "Varus", "Vayne", "Zed","Azir"
                 }.Contains(championName))
             {
                 return true;
