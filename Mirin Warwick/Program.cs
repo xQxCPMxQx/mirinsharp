@@ -513,7 +513,9 @@ namespace Warwick
         private static void Combo()
         {
             var t = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Physical);
-
+            if (!t.IsValidTarget()
+                return;
+                
             if (R.IsReady())
             {
                 var tR = SpellR.GetTarget(R.Range, TargetSelector.DamageType.Physical);
@@ -597,7 +599,7 @@ namespace Warwick
         private static void Harass()
         {
             var t = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
-            if (t.IsValidTarget())
+            if (!t.IsValidTarget())
                 return;
 
             if (Player.ManaPercent < Config.Item("Harass.Q.MinMana").GetValue<Slider>().Value)
